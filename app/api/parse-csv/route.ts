@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
         year: yearIdx >= 0 ? clean(parts[yearIdx]) : '',
         rating: ratingIdx >= 0 ? parseFloat(clean(parts[ratingIdx])) || null : null,
       };
-    }).filter(f => f.title && f.title.length > 1);
+    }).filter((f: {title: string, year: string, rating: number | null}) => f.title && f.title.length > 1);
     return NextResponse.json({ films, total: films.length });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
