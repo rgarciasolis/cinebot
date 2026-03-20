@@ -15,7 +15,7 @@ const PLATFORMS = [
 ];
 
 interface Film { title: string; year?: string; rating?: number | null; }
-interface Rec { title: string; englishTitle?: string; originalTitle?: string; year: string; director: string; genres: string[]; reason: string; connection: string; platform: string; }
+interface Rec { title: string; englishTitle?: string; originalTitle?: string; year: string; director: string; genres: string[]; reason: string; connection: string; platform: string; poster?: string | null; }
 interface Feedback { liked: Rec[]; disliked: Rec[]; rejectedGenres: string[]; rejectedDirectors: string[]; previouslyRecommended: string[]; }
 const EMPTY_FEEDBACK: Feedback = { liked: [], disliked: [], rejectedGenres: [], rejectedDirectors: [], previouslyRecommended: [] };
 
@@ -31,7 +31,7 @@ function loadStorage<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
 }
 function saveStorage(key: string, value: any) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {} 
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
 
 const s: Record<string, React.CSSProperties> = {
@@ -47,7 +47,7 @@ const s: Record<string, React.CSSProperties> = {
   sectionTitle: { fontFamily:"'Cormorant Garamond', serif", fontSize:28, fontWeight:400, letterSpacing:'-0.01em', color:'var(--text)', lineHeight:1.1 },
   divider: { width:'100%', height:1, background:'var(--border)', marginBottom:48, marginTop:16 },
   tabs: { display:'flex', borderBottom:'1px solid var(--border)', marginBottom:48 },
-  tab: { background:'none', border:'none', fontFamily:"'Jost', sans-serif", fontSize:11, fontWeight:400, letterSpacing:'0.1em', textTransform:'uppercase' as const, color:'var(--text-dim)', padding:'14px 24px 13px', cursor:'pointer', position:'relative' as const },
+  tab: { background:'none', border:'none', fontFamily:"'Jost', sans-serif", fontSize:11, fontWeight:400, letterSpacing:'0.1em', textTransform:'uppercase' as const, color:'var(--text-dim)', padding:'14px 24px 13px', cursor:'pointer' },
   inputGroup: { display:'flex', alignItems:'baseline', borderBottom:'1px solid var(--border-strong)', paddingBottom:12, marginBottom:40 },
   inputPrefix: { fontSize:15, color:'var(--text-mid)', whiteSpace:'nowrap' as const, fontWeight:300 },
   inputField: { background:'none', border:'none', outline:'none', fontFamily:"'Jost', sans-serif", fontSize:15, fontWeight:300, color:'var(--text)', flex:1, padding:'0 12px' },
@@ -59,7 +59,7 @@ const s: Record<string, React.CSSProperties> = {
   dropzoneLabel: { fontSize:11, letterSpacing:'0.1em', textTransform:'uppercase' as const, color:'var(--text-dim)' },
   platformGrid: { display:'flex', flexWrap:'wrap' as const, gap:8, marginBottom:48 },
   platBtn: { fontFamily:"'Jost', sans-serif", fontSize:10, fontWeight:400, letterSpacing:'0.1em', textTransform:'uppercase' as const, background:'none', border:'1px solid var(--border)', color:'var(--text-dim)', padding:'7px 14px', cursor:'pointer' },
-  platBtnActive: { border:'1px solid var(--text)', color:'var(--text)', background:'none' },
+  platBtnActive: { border:'1px solid var(--text)', color:'var(--text)' },
   modeGrid: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:1, marginBottom:48, background:'var(--border)' },
   modeOpt: { padding:'24px 28px', background:'var(--bg)', cursor:'pointer', border:'none', textAlign:'left' as const, fontFamily:"'Jost', sans-serif" },
   modeOptActive: { background:'var(--bg-card)' },
@@ -68,16 +68,20 @@ const s: Record<string, React.CSSProperties> = {
   modeDesc: { fontSize:11, color:'var(--text-dim)', letterSpacing:'0.04em', lineHeight:1.5 },
   infoBox: { borderLeft:'2px solid var(--accent-light)', paddingLeft:20, marginBottom:40 },
   infoText: { fontSize:13, color:'var(--text-mid)', lineHeight:1.6, fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic' },
-  recCard: { borderBottom:'1px solid var(--border)', paddingBottom:40, marginBottom:40 },
-  recNum: { fontFamily:"'Cormorant Garamond', serif", fontSize:13, color:'var(--text-dim)', letterSpacing:'0.06em', marginBottom:8 },
-  recTitle: { fontFamily:"'Cormorant Garamond', serif", fontSize:26, fontWeight:400, color:'var(--text)', letterSpacing:'-0.01em', lineHeight:1.1, textDecoration:'none', display:'block', marginBottom:4 },
-  recMeta: { fontSize:12, color:'var(--text-dim)', letterSpacing:'0.06em', textTransform:'uppercase' as const, marginBottom:16 },
-  recReason: { fontSize:14, color:'var(--text-mid)', lineHeight:1.7, marginBottom:12, fontWeight:300 },
+  recCard: { borderBottom:'1px solid var(--border)', paddingBottom:48, marginBottom:48, display:'flex', gap:28 },
+  recPoster: { width:90, flexShrink:0 },
+  recPosterImg: { width:90, height:135, objectFit:'cover' as const, display:'block' },
+  recPosterPlaceholder: { width:90, height:135, background:'var(--bg-card)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center' },
+  recBody: { flex:1, minWidth:0 },
+  recNum: { fontFamily:"'Cormorant Garamond', serif", fontSize:13, color:'var(--text-dim)', letterSpacing:'0.06em', marginBottom:6 },
+  recTitle: { fontFamily:"'Cormorant Garamond', serif", fontSize:24, fontWeight:400, color:'var(--text)', letterSpacing:'-0.01em', lineHeight:1.15, textDecoration:'none', display:'block', marginBottom:4 },
+  recMeta: { fontSize:11, color:'var(--text-dim)', letterSpacing:'0.06em', textTransform:'uppercase' as const, marginBottom:14 },
+  recReason: { fontSize:13, color:'var(--text-mid)', lineHeight:1.7, marginBottom:10, fontWeight:300 },
   recConnection: { fontSize:12, color:'var(--text-dim)', fontStyle:'italic', fontFamily:"'Cormorant Garamond', serif" },
-  tagRow: { display:'flex', flexWrap:'wrap' as const, gap:6, marginBottom:16 },
+  tagRow: { display:'flex', flexWrap:'wrap' as const, gap:6, marginBottom:14 },
   tag: { fontSize:10, letterSpacing:'0.08em', textTransform:'uppercase' as const, color:'var(--text-dim)', border:'1px solid var(--border)', padding:'3px 10px' },
   tagAccent: { color:'var(--accent)', borderColor:'var(--accent-light)' },
-  voteRow: { display:'flex', gap:8, marginTop:20 },
+  voteRow: { display:'flex', gap:8, marginTop:16 },
   voteBtn: { background:'none', border:'1px solid var(--border)', color:'var(--text-dim)', fontFamily:"'Jost', sans-serif", fontSize:10, letterSpacing:'0.08em', textTransform:'uppercase' as const, padding:'6px 16px', cursor:'pointer' },
   voteBtnLiked: { borderColor:'var(--accent)', color:'var(--accent)' },
   voteBtnDisliked: { borderColor:'var(--danger)', color:'var(--danger)' },
@@ -89,6 +93,14 @@ const s: Record<string, React.CSSProperties> = {
   errorText: { fontSize:13, color:'var(--danger)', marginTop:12, fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic' },
   loadingText: { fontSize:13, color:'var(--text-dim)', marginTop:12, fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic' },
 };
+
+async function fetchPoster(title: string, year: string): Promise<string | null> {
+  try {
+    const res = await fetch(`/api/tmdb?title=${encodeURIComponent(title)}&year=${year}`);
+    const data = await res.json();
+    return data.poster || null;
+  } catch { return null; }
+}
 
 export default function Home() {
   const [step, setStep] = useState(1);
@@ -174,10 +186,19 @@ export default function Home() {
       const res = await fetch('/api/recommend', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({films,platforms,mode,specificFilm,username,feedback}) });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      const newRecs:Rec[] = data.recommendations||[];
-      const nf = normalizeFeedback({...feedback, previouslyRecommended:[...new Set([...feedback.previouslyRecommended,...newRecs.map(r=>r.title.toLowerCase())])]});
+      const newRecs: Rec[] = data.recommendations || [];
+
+      setLoadingMsg('Buscando pósters...');
+      const recsWithPosters = await Promise.all(
+        newRecs.map(async (r) => {
+          const poster = await fetchPoster(r.englishTitle || r.title, r.year);
+          return { ...r, poster };
+        })
+      );
+
+      const nf = normalizeFeedback({...feedback, previouslyRecommended:[...new Set([...feedback.previouslyRecommended,...recsWithPosters.map(r=>r.title.toLowerCase())])]});
       setFeedback(nf); saveStorage('cinebot_feedback',nf);
-      setRecs(newRecs); setUserProfile(data.userProfile||''); setStep(4);
+      setRecs(recsWithPosters); setUserProfile(data.userProfile||''); setStep(4);
     } catch(e:any) { setError(e.message); }
     finally { setLoading(false); setLoadingMsg(''); }
   }
@@ -186,7 +207,6 @@ export default function Home() {
 
   return (
     <div style={s.container}>
-      {/* HEADER */}
       <div style={{marginBottom:64}}>
         <h1 style={s.logo}>CineBot</h1>
         <p style={s.tagline}>Recomendaciones personalizadas desde tu historial de Letterboxd</p>
@@ -199,7 +219,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* STEP 1 — Historial */}
       {step===1 && (
         <div>
           <div style={s.sectionLabel}>
@@ -207,7 +226,6 @@ export default function Home() {
             <h2 style={s.sectionTitle}>Carga tu historial de películas</h2>
           </div>
           <div style={s.divider}/>
-          {/* Tabs */}
           <div style={s.tabs}>
             {(['rss','csv','manual'] as const).map(t => (
               <button key={t} onClick={()=>setInputTab(t)} style={{...s.tab, color:inputTab===t?'var(--text)':'var(--text-dim)', borderBottom:inputTab===t?'1px solid var(--text)':'none', marginBottom:inputTab===t?-1:0}}>
@@ -215,7 +233,6 @@ export default function Home() {
               </button>
             ))}
           </div>
-
           {inputTab==='rss' && (
             <div>
               <p style={s.hint}>Carga las últimas 50 películas de tu perfil público.</p>
@@ -226,7 +243,6 @@ export default function Home() {
               <button style={s.btnPrimary} onClick={loadProfile} disabled={loading}>{loading?'Cargando...':'Cargar'}</button>
             </div>
           )}
-
           {inputTab==='csv' && (
             <div>
               <div style={s.guideBox}>
@@ -246,23 +262,18 @@ export default function Home() {
               </div>
             </div>
           )}
-
           {inputTab==='manual' && (
             <div>
-              <p style={{...s.hint, fontFamily:"'Cormorant Garamond', serif", fontSize:17, marginBottom:32}}>Escribe el título de cada película, una por línea.</p>
-              <textarea style={{...s.inputField, width:'100%', minHeight:140, resize:'vertical', lineHeight:1.8, padding:'16px 0', borderBottom:'1px solid var(--border-strong)', fontFamily:"'Jost', sans-serif"}} placeholder={"Mulholland Drive\nIn the Mood for Love\nStalker"} value={manualInput} onChange={e=>setManualInput(e.target.value)} />
-              <div style={{marginTop:40}}>
-                <button style={s.btnPrimary} onClick={loadManual}>Analizar</button>
-              </div>
+              <p style={{...s.hint,fontFamily:"'Cormorant Garamond', serif",fontSize:17,marginBottom:32}}>Escribe el título de cada película, una por línea.</p>
+              <textarea style={{...s.inputField,width:'100%',minHeight:140,resize:'vertical',lineHeight:1.8,padding:'16px 0',borderBottom:'1px solid var(--border-strong)',fontFamily:"'Jost', sans-serif"}} placeholder={"Mulholland Drive\nIn the Mood for Love\nStalker"} value={manualInput} onChange={e=>setManualInput(e.target.value)} />
+              <div style={{marginTop:40}}><button style={s.btnPrimary} onClick={loadManual}>Analizar</button></div>
             </div>
           )}
-
           {loadingMsg && <p style={s.loadingText}>{loadingMsg}</p>}
           {error && <p style={s.errorText}>{error}</p>}
         </div>
       )}
 
-      {/* STEP 2 — Plataformas */}
       {step===2 && (
         <div>
           <div style={s.sectionLabel}>
@@ -285,7 +296,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* STEP 3 — Modo */}
       {step===3 && (
         <div>
           <div style={s.sectionLabel}>
@@ -295,8 +305,7 @@ export default function Home() {
           <div style={s.divider}/>
           {(feedback.previouslyRecommended.length>0||feedback.rejectedGenres.length>0) && (
             <div style={{...s.infoBox,marginBottom:40}}>
-              <p style={s.infoText}>
-                Memoria activa — excluyendo {films.length} vistas + {feedback.previouslyRecommended.length} ya recomendadas{feedback.rejectedGenres.length>0?`. Evitando: ${feedback.rejectedGenres.join(', ')}`:''}.
+              <p style={s.infoText}>Memoria activa — excluyendo {films.length} vistas + {feedback.previouslyRecommended.length} ya recomendadas{feedback.rejectedGenres.length>0?`. Evitando: ${feedback.rejectedGenres.join(', ')}`:''}.
               </p>
             </div>
           )}
@@ -310,7 +319,7 @@ export default function Home() {
           </div>
           {mode==='film' && (
             <div style={{...s.inputGroup,marginBottom:48}}>
-              <input style={s.inputField} type="text" placeholder="Ej: Mulholland Drive, Parasite, Jeanne Dielman..." value={specificFilm} onChange={e=>setSpecificFilm(e.target.value)} onKeyDown={e=>e.key==='Enter'&&getRecommendations()} />
+              <input style={s.inputField} type="text" placeholder="Ej: Mulholland Drive, Parasite..." value={specificFilm} onChange={e=>setSpecificFilm(e.target.value)} onKeyDown={e=>e.key==='Enter'&&getRecommendations()} />
             </div>
           )}
           {loadingMsg && <p style={{...s.loadingText,marginBottom:24}}>{loadingMsg}</p>}
@@ -322,7 +331,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* STEP 4 — Resultados */}
       {step===4 && (
         <div>
           <div style={s.sectionLabel}>
@@ -338,18 +346,28 @@ export default function Home() {
           )}
           {recs.map((r,i)=>(
             <div key={i} style={s.recCard}>
-              <p style={s.recNum}>0{i+1}</p>
-              <a href={letterboxdUrl(r)} target="_blank" rel="noopener noreferrer" style={s.recTitle}>{r.title}{r.originalTitle&&r.originalTitle!==r.title&&<span style={{fontSize:20,color:'var(--text-dim)',fontWeight:300}}> — {r.originalTitle}</span>}</a>
-              <p style={s.recMeta}>{r.director?`${r.director}`:''}{r.year?` · ${r.year}`:''}</p>
-              <div style={s.tagRow}>
-                {r.platform&&<span style={{...s.tag,...s.tagAccent}}>{r.platform}</span>}
-                {(r.genres||[]).slice(0,3).map(g=><span key={g} style={s.tag}>{g}</span>)}
+              <div style={s.recPoster}>
+                {r.poster
+                  ? <img src={r.poster} alt={r.title} style={s.recPosterImg} />
+                  : <div style={s.recPosterPlaceholder}><span style={{fontSize:10,color:'var(--text-dim)',letterSpacing:'0.06em'}}>—</span></div>
+                }
               </div>
-              <p style={s.recReason}>{r.reason}</p>
-              {r.connection&&<p style={s.recConnection}>Conecta con {r.connection}</p>}
-              <div style={s.voteRow}>
-                <button onClick={()=>vote(i,r,'liked')} style={{...s.voteBtn,...(votes[i]==='liked'?s.voteBtnLiked:{})}}>Me interesa</button>
-                <button onClick={()=>vote(i,r,'disliked')} style={{...s.voteBtn,...(votes[i]==='disliked'?s.voteBtnDisliked:{})}}>No es para mí</button>
+              <div style={s.recBody}>
+                <p style={s.recNum}>0{i+1}</p>
+                <a href={letterboxdUrl(r)} target="_blank" rel="noopener noreferrer" style={s.recTitle}>
+                  {r.title}{r.originalTitle&&r.originalTitle!==r.title&&<span style={{fontSize:18,color:'var(--text-dim)',fontWeight:300}}> — {r.originalTitle}</span>}
+                </a>
+                <p style={s.recMeta}>{r.director?`${r.director}`:''}{r.year?` · ${r.year}`:''}</p>
+                <div style={s.tagRow}>
+                  {r.platform&&<span style={{...s.tag,...s.tagAccent}}>{r.platform}</span>}
+                  {(r.genres||[]).slice(0,3).map(g=><span key={g} style={s.tag}>{g}</span>)}
+                </div>
+                <p style={s.recReason}>{r.reason}</p>
+                {r.connection&&<p style={s.recConnection}>Conecta con {r.connection}</p>}
+                <div style={s.voteRow}>
+                  <button onClick={()=>vote(i,r,'liked')} style={{...s.voteBtn,...(votes[i]==='liked'?s.voteBtnLiked:{})}}>Me interesa</button>
+                  <button onClick={()=>vote(i,r,'disliked')} style={{...s.voteBtn,...(votes[i]==='disliked'?s.voteBtnDisliked:{})}}>No es para mí</button>
+                </div>
               </div>
             </div>
           ))}
